@@ -47,14 +47,17 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 
   const connectWallet = async () => {
     try {
-      if (!await freighter.isAvailable()) {
+      // Check if Freighter is available in the browser
+      if (!(await freighter.isConnected())) {
         toast.error("Freighter wallet is not available. Please install the extension.");
         window.open("https://www.freighter.app/", "_blank");
         return;
       }
 
-      await freighter.connect();
+      // Request permission to connect to the user's Stellar account
+      await freighter.setAllowedProviders(['ALBEDO', 'FREIGHTER']);
       const publicKey = await freighter.getPublicKey();
+      
       setIsConnected(true);
       setPublicKey(publicKey);
       toast.success("Wallet connected successfully!");
