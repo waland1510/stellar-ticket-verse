@@ -1,13 +1,15 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import * as freighter from '@stellar/freighter-api';
 import { toast } from "@/components/ui/sonner";
+import { isPasskeySupported, registerPasskey, authenticateWithPasskey } from '@/utils/passkey';
 
 interface WalletContextType {
   isConnected: boolean;
   publicKey: string | null;
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
+  isPasskeyAvailable: boolean;
+  connectWithPasskey: (username: string, displayName?: string) => Promise<void>;
 }
 
 const WalletContext = createContext<WalletContextType>({
@@ -15,6 +17,8 @@ const WalletContext = createContext<WalletContextType>({
   publicKey: null,
   connectWallet: async () => {},
   disconnectWallet: () => {},
+  isPasskeyAvailable: false,
+  connectWithPasskey: async () => {},
 });
 
 export const useWallet = () => useContext(WalletContext);
@@ -26,6 +30,7 @@ interface WalletProviderProps {
 export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [publicKey, setPublicKey] = useState<string | null>(null);
+  const [isPasskeyAvailable, setIsPasskeyAvailable] = useState(false);
 
   useEffect(() => {
     // Check if wallet is already connected
@@ -42,6 +47,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       }
     };
 
+    // Check if passkeys are supported
+    setIsPasskeyAvailable(isPasskeySupported());
+    
     checkConnection();
   }, []);
 
@@ -71,6 +79,38 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     }
   };
 
+  const connectWithPasskey = async (username: string, displayName?: string) => {
+    try {
+      if (!isPasskeyAvailable) {
+        toast.error("Passkeys are not supported in this browser");
+        return;
+      }
+
+      let credential;
+      
+      if (displayName) {
+        // If displayName is provided, register a new passkey
+        credential = await registerPasskey(username, displayName);
+        toast.success("Passkey registered successfully!");
+      } else {
+        // Otherwise, authenticate with existing passkey
+        credential = await authenticateWithPasskey(username);
+        toast.success("Authenticated with passkey!");
+      }
+
+      // In a real application, you would use this credential to authenticate with your backend
+      // and retrieve the associated Stellar account information
+      
+      // For now, we'll just set a dummy public key
+      const dummyPublicKey = "GBDFDUMMYPASSKEYPUBLICKEY000000000000000";
+      setIsConnected(true);
+      setPublicKey(dummyPublicKey);
+    } catch (error) {
+      console.error("Error with passkey:", error);
+      toast.error("Failed to use passkey");
+    }
+  };
+
   const disconnectWallet = () => {
     setIsConnected(false);
     setPublicKey(null);
@@ -78,7 +118,14 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   };
 
   return (
-    <WalletContext.Provider value={{ isConnected, publicKey, connectWallet, disconnectWallet }}>
+    <WalletContext.Provider value={{ 
+      isConnected, 
+      publicKey, 
+      connectWallet, 
+      disconnectWallet,
+      isPasskeyAvailable,
+      connectWithPasskey
+    }}>
       {children}
     </WalletContext.Provider>
   );
