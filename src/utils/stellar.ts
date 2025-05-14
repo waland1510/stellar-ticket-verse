@@ -1,6 +1,6 @@
 
 import * as freighter from '@stellar/freighter-api';
-import * as StellarSdk from '@stellar/stellar-sdk';
+import * as StellarSdk from 'stellar-sdk';
 
 // Configure the Stellar network (use testnet for development)
 export const server = new StellarSdk.Server('https://horizon-testnet.stellar.org');

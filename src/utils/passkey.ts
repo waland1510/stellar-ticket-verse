@@ -1,17 +1,23 @@
 
 import { PasskeyKit } from 'passkey-kit';
 
-// Initialize PasskeyKit
-const passkeyKit = new PasskeyKit();
+// Initialize PasskeyKit with default options
+const passkeyKit = new PasskeyKit({
+  rpID: window.location.hostname,
+  rpName: 'StellarTix'
+});
 
 // Register a new passkey
 export const registerPasskey = async (username: string, displayName: string) => {
   try {
     // Generate a new passkey for the user
-    const credential = await passkeyKit.register({
+    const credential = await passkeyKit.create({
       username,
       displayName,
-      attestation: 'direct',
+      authenticatorSelection: {
+        residentKey: 'required',
+        userVerification: 'preferred'
+      }
     });
     
     return credential;
@@ -25,8 +31,8 @@ export const registerPasskey = async (username: string, displayName: string) => 
 export const authenticateWithPasskey = async (username: string) => {
   try {
     // Authenticate with existing passkey
-    const assertion = await passkeyKit.authenticate({
-      username,
+    const assertion = await passkeyKit.get({
+      username
     });
     
     return assertion;
@@ -38,5 +44,7 @@ export const authenticateWithPasskey = async (username: string) => {
 
 // Verify if passkeys are supported in this browser
 export const isPasskeySupported = (): boolean => {
-  return passkeyKit.isSupported();
+  return typeof window !== 'undefined' && 
+         window.PublicKeyCredential !== undefined && 
+         typeof window.PublicKeyCredential === 'function';
 };
