@@ -55,12 +55,16 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       }
 
       // Request permission to connect to the user's Stellar account
-      await freighter.setAllowedProviders(['ALBEDO', 'FREIGHTER']);
-      const publicKey = await freighter.getPublicKey();
-      
-      setIsConnected(true);
-      setPublicKey(publicKey);
-      toast.success("Wallet connected successfully!");
+      try {
+        const publicKey = await freighter.getPublicKey();
+        
+        setIsConnected(true);
+        setPublicKey(publicKey);
+        toast.success("Wallet connected successfully!");
+      } catch (error) {
+        toast.error("User rejected the connection request");
+        console.error("Error connecting:", error);
+      }
     } catch (error) {
       console.error("Error connecting wallet:", error);
       toast.error("Failed to connect wallet");
