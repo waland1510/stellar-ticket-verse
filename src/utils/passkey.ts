@@ -15,7 +15,7 @@ let account = null;
 export const registerPasskey = async (username: string, displayName: string) => {
   try {
     if (!account) {
-      account = passkeyKit.createAccount();
+      account = passkeyKit.create();
     }
     
     // Generate a new passkey for the user
@@ -42,7 +42,7 @@ export const registerPasskey = async (username: string, displayName: string) => 
 export const authenticateWithPasskey = async (username: string) => {
   try {
     if (!account) {
-      account = passkeyKit.createAccount();
+      account = passkeyKit.create();
     }
     
     // Get stored keyId from local storage
@@ -71,13 +71,13 @@ export const isPasskeySupported = (): boolean => {
 
 // Get the server instance from passkeyKit for sending transactions
 export const getServer = () => {
-  return passkeyKit.server;
+  return passkeyKit.horizon;
 };
 
 // Get the account instance for direct operations
 export const getAccount = () => {
   if (!account) {
-    account = passkeyKit.createAccount();
+    account = passkeyKit.create();
   }
   return account;
 };
