@@ -1,5 +1,5 @@
 
-import { Wallet } from '@stellar/freighter-api';
+import * as freighter from '@stellar/freighter-api';
 import * as StellarSdk from 'stellar-sdk';
 
 // Configure the Stellar network (use testnet for development)
@@ -52,11 +52,11 @@ export const listTicketForSale = async (
   }
 ) => {
   try {
-    if (!await Wallet.isConnected()) {
+    if (!await freighter.isConnected()) {
       throw new Error('Wallet not connected');
     }
     
-    const publicKey = await Wallet.getPublicKey();
+    const publicKey = await freighter.getPublicKey();
     const sourceAccount = await server.loadAccount(publicKey);
     
     // Convert ticket details to data entry
@@ -77,7 +77,7 @@ export const listTicketForSale = async (
       .build();
     
     // Sign the transaction with Freighter
-    const signedTransaction = await Wallet.signTransaction(
+    const signedTransaction = await freighter.signTransaction(
       transaction.toXDR(),
       {
         networkPassphrase,
@@ -102,11 +102,11 @@ export const listTicketForSale = async (
 // Buy a ticket (simplified version)
 export const buyTicket = async (sellerPublicKey: string, ticketId: string) => {
   try {
-    if (!await Wallet.isConnected()) {
+    if (!await freighter.isConnected()) {
       throw new Error('Wallet not connected');
     }
     
-    const buyerPublicKey = await Wallet.getPublicKey();
+    const buyerPublicKey = await freighter.getPublicKey();
     const sourceAccount = await server.loadAccount(buyerPublicKey);
     
     // Create a payment transaction
@@ -131,7 +131,7 @@ export const buyTicket = async (sellerPublicKey: string, ticketId: string) => {
       .build();
     
     // Sign the transaction with Freighter
-    const signedTransaction = await Wallet.signTransaction(
+    const signedTransaction = await freighter.signTransaction(
       transaction.toXDR(),
       {
         networkPassphrase,

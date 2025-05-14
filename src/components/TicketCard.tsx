@@ -11,15 +11,6 @@ interface TicketCardProps {
   ticket: Ticket;
 }
 
-export const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-};
-
 const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
   return (
     <Card className="ticket-card h-full flex flex-col transition-transform hover:scale-[1.01]">

@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Wallet } from '@stellar/freighter-api';
+import * as freighter from '@stellar/freighter-api';
 import { toast } from "@/components/ui/sonner";
 
 interface WalletContextType {
@@ -31,9 +31,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     // Check if wallet is already connected
     const checkConnection = async () => {
       try {
-        const isAvailable = await Wallet.isConnected();
+        const isAvailable = await freighter.isConnected();
         if (isAvailable) {
-          const publicKey = await Wallet.getPublicKey();
+          const publicKey = await freighter.getPublicKey();
           setIsConnected(true);
           setPublicKey(publicKey);
         }
@@ -47,14 +47,14 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 
   const connectWallet = async () => {
     try {
-      if (!await Wallet.isAvailable()) {
+      if (!await freighter.isAvailable()) {
         toast.error("Freighter wallet is not available. Please install the extension.");
         window.open("https://www.freighter.app/", "_blank");
         return;
       }
 
-      await Wallet.connect();
-      const publicKey = await Wallet.getPublicKey();
+      await freighter.connect();
+      const publicKey = await freighter.getPublicKey();
       setIsConnected(true);
       setPublicKey(publicKey);
       toast.success("Wallet connected successfully!");
