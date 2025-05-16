@@ -11,8 +11,10 @@ export const account = new PasskeyKit({
 // Initialize server for sending transactions
 // In a production app, this would be handled by a backend service
 export const server = {
-  send: async (signedTx: string) => {
-    console.log("Transaction to be submitted:", signedTx);
+  send: async (signedTx: any) => {
+    // Convert Tx object to string if needed
+    const txString = typeof signedTx === 'string' ? signedTx : JSON.stringify(signedTx);
+    console.log("Transaction to be submitted:", txString);
     // In a full implementation, this would send the transaction to a backend endpoint
     return Promise.resolve(); // Mock successful transaction
   }
