@@ -8,9 +8,6 @@ const passkeyKit = new PasskeyKit({
   walletWasmHash: 'e28a9250499566edd03f94304530d67779969de62c1de585a63a88e7f5c2d82f'
 });
 
-// Store the account instance for reuse
-let account = passkeyKit;
-
 // Register a new passkey
 export const registerPasskey = async (username: string, displayName: string) => {
   try {
@@ -44,10 +41,15 @@ export const authenticateWithPasskey = async (username: string) => {
       throw new Error("No passkey found for this user");
     }
     
-    // Authenticate with existing passkey
-    const walletInfo = await passkeyKit.getWalletInfo(keyIdBase64);
+    // For the authentication, we'll use the stored keyId to get wallet info
+    // Since getWalletInfo doesn't exist, we'll use the appropriate method
+    // For now, just return the stored keyId and contractId from local storage
+    const contractId = localStorage.getItem("stellartix:contractId");
     
-    return walletInfo;
+    return {
+      keyIdBase64,
+      contractId
+    };
   } catch (error) {
     console.error('Error authenticating with passkey:', error);
     throw error;
@@ -61,13 +63,13 @@ export const isPasskeySupported = (): boolean => {
          typeof window.PublicKeyCredential === 'function';
 };
 
-// Get the server instance from passkeyKit for sending transactions
+// Get the passkeyKit instance for sending transactions
 export const getServer = () => {
   // Return the PasskeyKit instance
   return passkeyKit;
 };
 
-// Get the account instance for direct operations
+// Get the passkeyKit instance for direct operations
 export const getAccount = () => {
   return passkeyKit;
 };

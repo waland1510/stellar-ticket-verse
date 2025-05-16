@@ -1,12 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useWallet } from '@/contexts/WalletContext';
 import { Link } from 'react-router-dom';
 import { WalletCards } from 'lucide-react';
+import PasskeyAuth from './PasskeyAuth';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const Header: React.FC = () => {
-  const { isConnected, publicKey, connectWallet, disconnectWallet } = useWallet();
+  const { isConnected, publicKey, disconnectWallet } = useWallet();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   return (
     <header className="bg-white border-b py-4">
@@ -49,14 +52,27 @@ const Header: React.FC = () => {
             </div>
           ) : (
             <Button 
-              onClick={connectWallet}
+              onClick={() => setIsAuthModalOpen(true)}
               className="gradient-btn px-4 py-2"
             >
-              Connect Wallet
+              Login / Signup
             </Button>
           )}
         </div>
       </div>
+      
+      {/* Auth Modal */}
+      <Dialog open={isAuthModalOpen} onOpenChange={setIsAuthModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl text-center">Login or Register</DialogTitle>
+          </DialogHeader>
+          <p className="text-center text-gray-600 mb-4">
+            Securely access your NFT tickets using passkeys
+          </p>
+          <PasskeyAuth />
+        </DialogContent>
+      </Dialog>
     </header>
   );
 };

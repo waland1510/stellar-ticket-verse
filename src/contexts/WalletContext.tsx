@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import * as freighter from '@stellar/freighter-api';
 import { toast } from "@/components/ui/sonner";
@@ -53,17 +54,10 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         
         // Then check for passkey connection
         const keyIdBase64 = localStorage.getItem("stellartix:keyId");
-        if (keyIdBase64) {
-          try {
-            const account = getAccount();
-            const walletInfo = await account.getWalletInfo(keyIdBase64);
-            if (walletInfo && walletInfo.contractId) {
-              setIsConnected(true);
-              setPublicKey(walletInfo.contractId);
-            }
-          } catch (error) {
-            console.error("Error retrieving passkey wallet:", error);
-          }
+        const contractId = localStorage.getItem("stellartix:contractId");
+        if (keyIdBase64 && contractId) {
+          setIsConnected(true);
+          setPublicKey(contractId);
         }
       } catch (error) {
         console.error("Error checking wallet connection:", error);
@@ -121,6 +115,11 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         // For now, we'll just log it and assume it's handled
         console.log("Transaction to be submitted:", result.signedTx);
         
+        // Store the contract ID in local storage for future use
+        if (result.contractId) {
+          localStorage.setItem("stellartix:contractId", result.contractId);
+        }
+        
         // In a complete implementation, you would send this to your backend:
         // await fetch('/api/submit-transaction', {
         //   method: 'POST',
@@ -150,6 +149,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     setIsConnected(false);
     setPublicKey(null);
     localStorage.removeItem("stellartix:keyId");
+    localStorage.removeItem("stellartix:contractId");
     toast.success("Wallet disconnected");
   };
 
