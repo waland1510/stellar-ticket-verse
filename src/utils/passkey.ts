@@ -1,24 +1,26 @@
 
-import { PasskeyKit } from 'passkey-kit';
+import { PasskeyKit, PasskeyServer } from "passkey-kit";
 
-// Initialize PasskeyKit with Stellar network options
+// Hardcoded values since we don't have environment variables in this setup
+const RPC_URL = "https://soroban-testnet.stellar.org";
+const NETWORK_PASSPHRASE = "Test SDF Network ; September 2015";
+const WASM_HASH = "686dfd0a069a826d19c3ccf441a984c7ddb666dbeb64dfed2db62df6...2f";
+const CONTRACT_ID = "CAWSIHRK6FF2R2AWQT6HRO7RJYV5SPFKTAUZFEXFWD5COPTEAAVK62QP";
+
+// Initialize PasskeyKit with hardcoded values
 export const account = new PasskeyKit({
-  rpcUrl: 'https://horizon-testnet.stellar.org',
-  networkPassphrase: 'Test SDF Network ; September 2015',
-  walletWasmHash: 'e28a9250499566edd03f94304530d67779969de62c1de585a63a88e7f5c2d82f'
+  rpcUrl: RPC_URL,
+  networkPassphrase: NETWORK_PASSPHRASE,
+  walletWasmHash: WASM_HASH,
+  timeoutInSeconds: 30,
 });
 
 // Initialize server for sending transactions
-// In a production app, this would be handled by a backend service
-export const server = {
-  send: async (signedTx: any) => {
-    // Convert Tx object to string if needed
-    const txString = typeof signedTx === 'string' ? signedTx : JSON.stringify(signedTx);
-    console.log("Transaction to be submitted:", txString);
-    // In a full implementation, this would send the transaction to a backend endpoint
-    return Promise.resolve(); // Mock successful transaction
-  }
-};
+export const server = new PasskeyServer({
+  rpcUrl: RPC_URL,
+  launchtubeUrl: "https://launchtube.stellarblockchain.io", // Using a default value
+  launchtubeJwt: "", // This would need a real JWT in production
+});
 
 // Verify if passkeys are supported in this browser
 export const isPasskeySupported = (): boolean => {
