@@ -1,14 +1,9 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import * as freighter from '@stellar/freighter-api';
 import { toast } from "@/components/ui/sonner";
-import { 
-  isPasskeySupported, 
-  registerPasskey, 
-  authenticateWithPasskey,
-  getServer, 
-  getAccount 
-} from '@/utils/passkey';
+import { useKeyIdStore } from '@/store/keyId';
+import { useContractIdStore } from '@/store/contractId';
+import { isPasskeySupported } from '@/utils/passkey';
 
 interface WalletContextType {
   isConnected: boolean;
@@ -38,6 +33,10 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [publicKey, setPublicKey] = useState<string | null>(null);
   const [isPasskeyAvailable, setIsPasskeyAvailable] = useState(false);
+  
+  // Use our stores
+  const contractId = useContractIdStore((state) => state.contractId);
+  const updateContractId = useContractIdStore((state) => state.setContractId);
 
   useEffect(() => {
     // Check if wallet is already connected
@@ -52,10 +51,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
           return;
         }
         
-        // Then check for passkey connection
-        const keyIdBase64 = localStorage.getItem("stellartix:keyId");
-        const contractId = localStorage.getItem("stellartix:contractId");
-        if (keyIdBase64 && contractId) {
+        // Then check for passkey connection through contractId from the store
+        if (contractId) {
           setIsConnected(true);
           setPublicKey(contractId);
         }
@@ -68,7 +65,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     setIsPasskeyAvailable(isPasskeySupported());
     
     checkConnection();
-  }, []);
+  }, [contractId]);
 
   const connectWallet = async () => {
     try {
@@ -96,60 +93,34 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     }
   };
 
+  // This is now a simplified method that delegates to PasskeyAuth
   const connectWithPasskey = async (username: string, displayName?: string) => {
-    try {
-      if (!isPasskeyAvailable) {
-        toast.error("Passkeys are not supported in this browser");
-        return;
-      }
-
-      let result;
-      
-      if (displayName) {
-        // If displayName is provided, register a new passkey
-        result = await registerPasskey(username, displayName);
-        
-        // Since we can't directly call server.send, we need an alternative approach
-        // The signedTx from registerPasskey should be submitted to the network
-        // Here we would typically send it to a server endpoint that uses PasskeyServer
-        // For now, we'll just log it and assume it's handled
-        console.log("Transaction to be submitted:", result.signedTx);
-        
-        // Store the contract ID in local storage for future use
-        if (result.contractId) {
-          localStorage.setItem("stellartix:contractId", result.contractId);
-        }
-        
-        // In a complete implementation, you would send this to your backend:
-        // await fetch('/api/submit-transaction', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ signedTx: result.signedTx })
-        // });
-        
-        toast.success("Passkey registered successfully!");
-      } else {
-        // Otherwise, authenticate with existing passkey
-        result = await authenticateWithPasskey(username);
-        toast.success("Authenticated with passkey!");
-      }
-
-      // Set the contract ID as the public key
-      if (result && result.contractId) {
-        setIsConnected(true);
-        setPublicKey(result.contractId);
-      }
-    } catch (error) {
-      console.error("Error with passkey:", error);
-      toast.error("Failed to use passkey");
-    }
+    // This functionality is now directly handled by the PasskeyAuth component
+    // We keep this method for backward compatibility
+    toast.info("Please use the login/signup buttons in the header");
   };
 
   const disconnectWallet = () => {
     setIsConnected(false);
     setPublicKey(null);
-    localStorage.removeItem("stellartix:keyId");
-    localStorage.removeItem("stellartix:contractId");
+    
+    // Clear contractId in the store
+    updateContractId('');
+    
+    // Clear localStorage items
+    Object.keys(localStorage).forEach((key) => {
+      if (key.includes("stellartix:")) {
+        localStorage.removeItem(key);
+      }
+    });
+    
+    // Clear sessionStorage items
+    Object.keys(sessionStorage).forEach((key) => {
+      if (key.includes("stellartix:")) {
+        sessionStorage.removeItem(key);
+      }
+    });
+    
     toast.success("Wallet disconnected");
   };
 

@@ -1,15 +1,35 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { useWallet } from '@/contexts/WalletContext';
 import { Link } from 'react-router-dom';
 import { WalletCards } from 'lucide-react';
-import PasskeyAuth from './PasskeyAuth';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import PasskeyAuth from './PasskeyAuth';
+import { useContractIdStore } from '@/store/contractId';
+import { truncate } from '@/utils/base';
 
 const Header: React.FC = () => {
-  const { isConnected, publicKey, disconnectWallet } = useWallet();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const contractId = useContractIdStore((state) => state.contractId);
+  const updateContractId = useContractIdStore((state) => state.setContractId);
+
+  function logout() {
+    updateContractId('');
+
+    // Clear all localStorage items related to our app
+    Object.keys(localStorage).forEach((key) => {
+      if (key.includes("stellartix:")) {
+        localStorage.removeItem(key);
+      }
+    });
+
+    // Clear all sessionStorage items related to our app
+    Object.keys(sessionStorage).forEach((key) => {
+      if (key.includes("stellartix:")) {
+        sessionStorage.removeItem(key);
+      }
+    });
+  }
 
   return (
     <header className="bg-white border-b py-4">
@@ -37,17 +57,22 @@ const Header: React.FC = () => {
         </nav>
         
         <div>
-          {isConnected ? (
+          {contractId ? (
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500 hidden md:inline-block">
-                {publicKey?.slice(0, 6)}...{publicKey?.slice(-4)}
-              </span>
+              <a
+                className="text-sm text-gray-500 underline hidden md:inline-block"
+                href={`https://stellar.expert/explorer/testnet/contract/${contractId}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {truncate(contractId, 4)}
+              </a>
               <Button 
                 variant="outline" 
-                onClick={disconnectWallet}
+                onClick={logout}
                 className="border-stellar-primary text-stellar-primary hover:bg-stellar-accent hover:text-stellar-primary"
               >
-                Disconnect
+                Logout
               </Button>
             </div>
           ) : (
